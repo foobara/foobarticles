@@ -1,0 +1,61 @@
+#!/usr/bin/env ruby
+
+require_relative "boot"
+
+module FoobaraDemo
+  module LoanOrigination
+    class UnderwriterSummary < Foobara::Model
+      attributes do
+        loan_file_id :integer, :required
+        pay_stub_count :integer, :required
+        fico_scores [:integer, :integer, :integer], :required
+        credit_policy CreditPolicy, :required
+      end
+    end
+
+    class ReviewLoanFile < Foobara::AgentBackedCommand
+      description "Starts the underwriter review then checks requirements in its CreditPolicy " \
+                  "and approves or denies accordingly."
+
+      inputs UnderwriterSummary
+      result LoanFile::UnderwriterDecision
+
+      depends_on StartUnderwriterReview, DenyLoanFile, ApproveLoanFile
+
+      verbose
+      llm_model "claude-3-7-sonnet-20250219"
+      agent_name "Inner"
+    end
+
+    class ReviewAllLoanFiles < Foobara::AgentBackedCommand
+      result [{
+        applicant_name: :string,
+        decision: LoanFile::UnderwriterDecision
+      }]
+
+      depends_on ReviewLoanFile, FindALoanFileThatNeedsReview
+
+      verbose
+      llm_model "gpt-4o"
+      agent_name "Outer"
+    end
+  end
+end
+
+outcome = FoobaraDemo::LoanOrigination::ReviewAllLoanFiles.run
+
+if outcome.success?
+  outcome.result.each do |name_and_decision|
+    name, decision = name_and_decision.values_at(:applicant_name, :decision)
+
+    if decision.denied?
+      puts "Denied: #{name}"
+      puts "Reason: #{decision.denied_reasons.join(", ")}"
+    else
+      puts "Approve: #{name}"
+    end
+    puts
+  end
+else
+  puts outcome.errors_hash
+end

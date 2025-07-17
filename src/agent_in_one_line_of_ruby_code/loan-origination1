@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require_relative "boot"
+require "foobara/sh_cli_connector"
+
+connector = Foobara::CommandConnectors::ShCliConnector.new
+connector.connect(FoobaraDemo::LoanOrigination)
+connector.run
