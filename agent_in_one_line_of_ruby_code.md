@@ -1,7 +1,20 @@
-## Writing an AI Agent in 1 Line of Ruby Code! (using Foobara's AgentBackedCommand)
+## Writing an AI Agent in 1 Line of Ruby Code Using Foobara's AgentBackedCommand
 
 In this article, we'll introduce/demo `Foobara::AgentBackedCommand` by adding it to a program
-with an existing Foobara domain in it.
+with an existing Foobara domain in it. Let's do it!
+
+<!-- TOC -->
+  * [Writing an AI Agent in 1 Line of Ruby Code! (using Foobara's AgentBackedCommand)](#writing-an-ai-agent-in-1-line-of-ruby-code-using-foobaras-agentbackedcommand)
+    * [The Demo Loan Origination Domain and Demo Records](#the-demo-loan-origination-domain-and-demo-records)
+    * [Defining and Running a Foobara::AgentBackedCommand](#defining-and-running-a-foobaraagentbackedcommand)
+    * [A More Complex and Interesting Example](#a-more-complex-and-interesting-example)
+    * [Specifying an Inputs Type for an AgentBackedCommand](#specifying-an-inputs-type-for-an-agentbackedcommand)
+    * [Specifying and Using AgentBackedCommand Results Programmatically!](#specifying-and-using-agentbackedcommand-results-programmatically)
+    * [An Interesting Takeaway...](#an-interesting-takeaway)
+    * [Links](#links)
+    * [Please Reach Out!](#please-reach-out)
+    * [Disclaimers](#disclaimers)
+<!-- TOC -->
 
 ### The Demo Loan Origination Domain and Demo Records
 
@@ -351,6 +364,8 @@ So here we've abandoned the CLI command connector and are just using the command
 
 We have introduced a second `AgentBackedCommand` called `ReviewLoanFile`. These two `AgentBackedCommand`s are not only using two different models but two different services entirely.
 
+### Specifying an Inputs Type for an AgentBackedCommand
+
 We are making use of `inputs` on `ReviewLoanFile` just like we would with any `Foobara::Command` that needs
 inputs. Originally, inputs there were defined as:
 
@@ -366,7 +381,9 @@ applicants. So we remodeled it by introducing a new model to provide only this i
 
 Something cool about this
 is we didn't have to change `ReviewAllLoanFiles` when we changed the inputs to `ReviewLoanFile` since 
-it has no #execute method nor domain logic to update to conform to the new interface!
+it has no `#execute` method nor domain logic to update to conform to the new interface!
+
+### Specifying and Using AgentBackedCommand Results Programmatically!
 
 We are also specifying a result type for `ReviewAllLoanFiles`, like so:
 
@@ -491,7 +508,10 @@ implemented domain logic as the business scales and the domain solidifies.
 
 Want help using Foobara or want to help Foobara by contributing code/art/documentation/whatever to it? Please reach out! https://foobara.com
 
-Disclaimers: 1) This agent just does whatever it thinks it needs to do to accomplish its goal. So
-play with this with caution! 2) This loan origination domain is just to demo cool aspects of Foobara
+### Disclaimers
+
+1) This agent just does whatever it thinks it needs to do to accomplish its goal. So
+play with this with caution! 
+2) This loan origination domain is just to demo cool aspects of Foobara
 in a relatable way. This is probably obvious, but this is not meant for making real credit decisions, which
 might not even be a safe task for an LLM, anyway.
