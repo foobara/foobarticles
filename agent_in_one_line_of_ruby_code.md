@@ -4,17 +4,21 @@ In this article, we'll introduce/demo `Foobara::AgentBackedCommand` by adding it
 with an existing Foobara domain in it. Let's do it!
 
 <!-- TOC -->
-  * [Writing an AI Agent in 1 Line of Ruby Code! (using Foobara's AgentBackedCommand)](#writing-an-ai-agent-in-1-line-of-ruby-code-using-foobaras-agentbackedcommand)
-    * [The Demo Loan Origination Domain and Demo Records](#the-demo-loan-origination-domain-and-demo-records)
-    * [Defining and Running a Foobara::AgentBackedCommand](#defining-and-running-a-foobaraagentbackedcommand)
-    * [A More Complex and Interesting Example](#a-more-complex-and-interesting-example)
-    * [Specifying an Inputs Type for an AgentBackedCommand](#specifying-an-inputs-type-for-an-agentbackedcommand)
-    * [Specifying and Using AgentBackedCommand Results Programmatically!](#specifying-and-using-agentbackedcommand-results-programmatically)
-    * [An Interesting Takeaway...](#an-interesting-takeaway)
-    * [Links](#links)
-    * [Please Reach Out!](#please-reach-out)
-    * [Disclaimers](#disclaimers)
+* [What is Foobara?](#what-is-foobara)
+* [The Demo Loan Origination Domain and Demo Records](#the-demo-loan-origination-domain-and-demo-records)
+* [Defining and Running a Foobara::AgentBackedCommand](#defining-and-running-a-foobaraagentbackedcommand)
+* [A More Complex and Interesting Example](#a-more-complex-and-interesting-example)
+* [Specifying an Inputs Type for an AgentBackedCommand](#specifying-an-inputs-type-for-an-agentbackedcommand)
+* [Specifying and Using AgentBackedCommand Results Programmatically!](#specifying-and-using-agentbackedcommand-results-programmatically)
+* [An Interesting Takeaway](#an-interesting-takeaway)
+* [Links](#links)
+* [Please Reach Out!](#please-reach-out)
+* [Disclaimers](#disclaimers)
 <!-- TOC -->
+
+### What is Foobara?
+
+Foobara is a command-centric and discoverable software framework that helps manage domain complexity by abstracting away integration code and other features.
 
 ### The Demo Loan Origination Domain and Demo Records
 
@@ -22,7 +26,7 @@ First, we need a program to add it to. Here is a program that uses a demo loan o
 written using Foobara. You can find the demo domain implementation here: 
 https://github.com/foobara-demo/loan-origination/tree/main/src
 
-So here's our program in an executable file called `loan-origination`:
+Here's our program in an executable file called `loan-origination`:
 
 ```ruby
 #!/usr/bin/env ruby
@@ -65,7 +69,7 @@ Available commands:
 $ 
 ```
 
-So we can see a ton of commands at our disposal. Let's run `GenerateLoanFilesReport`:
+We can see a ton of commands at our disposal. Let's run `GenerateLoanFilesReport`:
 
 ```
 $ ./loan-origination GenerateLoanFilesReport
@@ -134,8 +138,6 @@ Since Foobara commands are meant to encapsulate high-level domain operations, it
 could just have a `ReviewAllLoanFiles` Foobara command but without having to write its #execute method (ie,
 the domain logic itself.)
 
-We can!
-
 ### Defining and Running a Foobara::AgentBackedCommand
 
 Now it's finally time to write our AI agent in 1 line of Ruby code, introducing `Foobara::AgentBackedCommand`:
@@ -153,8 +155,7 @@ connector.connect(FoobaraDemo::LoanOrigination)
 connector.run
 ```
 
-And we're done! We've created a command called `ReviewAllLoanFiles` which is an `AgentBackedCommand`. That line
-in the middle of the file.
+And we're done! We've created a command called `ReviewAllLoanFiles` which is an `AgentBackedCommand`.
 
 We can now see it in our `loan-origination --help` output:
 
@@ -215,7 +216,8 @@ I've snipped many options as well as a ton of models out of the `--llm-model` op
 `--llm-model` option here but it supports ollama, openai, and anthropic models. It defaults to 
 claude-3-7-sonnet-20250219.
 
-I will make use of `--agent-options-verbose` and `--agent-name`, though. So... let's review these loan files!
+I will make use of `--agent-options-verbose` so we can see what decisions it makes, 
+as well as `--agent-name`, though. So... let's review these loan files!
 
 ```
 $ ./loan-origination ReviewAllLoanFiles --agent-options-verbose --agent-name UnderwritingAgent
@@ -245,7 +247,7 @@ UnderwritingAgent: Foobara::Agent::NotifyUserThatCurrentGoalHasBeenAccomplished.
 $ 
 ```
 
-So we can see all the decisions it made. Let's look at the report now:
+Here we can see all the decisions it made. Let's look at the report now:
 
 ```
 $ ./loan-origination GenerateLoanFilesReport
@@ -286,8 +288,8 @@ $
 ```
 
 Looks great! It used the correct credit scores for the different loan files, 
-made the correct approved/denial decisions
-and chose the proper denial reason for the different denied loan files.
+made the correct approved/denied decisions
+and chose the proper denied reason for the different denied loan files.
 
 ### A More Complex and Interesting Example
 
@@ -360,7 +362,7 @@ else
 end
 ```
 
-So here we've abandoned the CLI command connector and are just using the commands directly.
+We've abandoned the CLI command connector and are just using the commands directly.
 
 We have introduced a second `AgentBackedCommand` called `ReviewLoanFile`. These two `AgentBackedCommand`s are not only using two different models but two different services entirely.
 
@@ -375,9 +377,11 @@ inputs do
 end
 ```
 
-But this presents a problem. Can you spot it? We want to avoid things like bias from the names of the
-applicants. So we remodeled it by introducing a new model to provide only this information and called it 
-`UnderwriterSummary`. 
+This worked but this presents a problem. Can you spot it? We want to avoid things 
+like bias from the names of the applicants influencing decisions. So we remodeled 
+it by introducing a new model to provide the minimum information 
+required and called it `UnderwriterSummary`.
+
 
 Something cool about this
 is we didn't have to change `ReviewAllLoanFiles` when we changed the inputs to `ReviewLoanFile` since 
@@ -405,19 +409,20 @@ else
 end
 ```
 
-We are guaranteed that this data
-has the types we specified in `.result` just like with any other `Foobara::Command` and
+We are guaranteed that this data has the types we specified in our `result` declaration, 
+just like with any other `Foobara::Command` and
 can use it programmatically just fine as a result.
 
 We are also making use of `depends_on` which is standard Foobara stuff to limit what subcommands
 a command is allowed to run.
 
-There are a few DSL methods that we're making use of here: `verbose` will let us see which decisions
-which Agent is making, `llm_model` will let us specify the model for each agent independently, 
-and `agent_name` will let us specify
+There are a few AgentBackedCommand-specific DSL methods that we're making 
+use of here: `verbose` will let us see which decisions
+which Agent is making, `llm_model` will let us specify the model for each 
+agent independently, and `agent_name` will let us specify
 the name for each agent independently so we can tell them apart in the output.
 
-So let's re-create our demo records:
+Let's first re-create our demo records:
 
 ```
 $ ./loan-origination Demo::PrepareDemoRecords
@@ -481,25 +486,29 @@ Cool! We programmatically used result data from a command without having to writ
 
 And if we check `./loan-origination GenerateLoanFilesReport` we can see that our program did everything correctly!
 
-### An Interesting Takeaway...
+### An Interesting Takeaway
 
-Putting together this demo, something crossed my mind: It could be that we might find ourselves wanting to use LLMs
-to handle some of this domain logic for us
-as we prototype and discover the domain, but once the business scales, it might be worth the increased cost savings 
-to then convert `AgentBackedCommand`s to just regular `Foobara::Command`s. Take for example `ReviewAllLoanFiles`. 
-We do get some benefit of not having to manage the interface change between it and `ReviewLoanFile`, but it 
-could be expensive to run if the business scales and its domain logic isn't that difficult to implement
-in a typical #execute method.
+Putting together this demo, something crossed my mind: It could be that we might 
+find ourselves wanting to use LLMs to handle some of this domain logic for us as 
+we prototype and discover the domain, but once the business scales, it might be worth the cost savings
+to then convert `AgentBackedCommand`s to just regular `Foobara::Command`s. Take for 
+example `ReviewAllLoanFiles`.
+We did get some benefit of not having to manage the interface change between it 
+and `ReviewLoanFile`, but it could be expensive to run if the business scales even 
+though its domain logic isn't that difficult to implement in a typical #execute method.
 
-This possibility is interesting to me because it is the opposite of my intuition: that we might start with a well-working domain 
-and then look for opportunities to automate parts of it.
-In some cases, it might be that we want the reverse: to automate various high-level domain operations during
-prototyping and early stages of business and then start replacing LLM automation with
-implemented domain logic as the business scales and the domain solidifies.
+This possibility is interesting to me because it is the opposite of 
+my intuition: that we might start with a well-working domain
+and then look for opportunities to automate parts of it. In some cases, 
+it might be that we want the reverse: to automate various high-level 
+domain operations during prototyping and early stages of business and 
+then start replacing LLM automation with implemented domain logic as 
+the business scales and the domain solidifies.
 
 ### Links
 
 * The foobara-agent-backed-command gem: https://github.com/foobara/agent-backed-command
+* Code demo video of AgentBackedCommand: https://youtu.be/hBleW4m9JFQ
 * The demo loan origination domain: https://github.com/foobara-demo/loan-origination/tree/main/src
 * Code used in this demo: https://github.com/foobara/foobarticles/tree/main/src/agent_in_one_line_of_ruby_code
 * Foobara: https://foobara.com
